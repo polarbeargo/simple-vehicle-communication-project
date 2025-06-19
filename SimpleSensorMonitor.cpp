@@ -56,6 +56,8 @@ void lin_rx_isr(uint8_t id) {
 int main(int argc, char **argv) {
     // Configure the I2C controller and LIN controller here:
 
+    uint32_t i2c_config = I2C_CLK_100KHZ | I2C_HOST | I2C_IDLE_LOW | I2C_CLK_RISING_EDGE;
+    i2c_write_config(0xFF000030, i2c_config);
 
     // Add the LIN RX ISR
     lin_add_rx_frame_header_interrupt(lin_rx_isr);
