@@ -36,21 +36,22 @@
 
 // Reading the contents of the LIN Descriptor File is too much for this project
 static uint8_t g_current_val = 0;
+static uint32_t g_sum = 0;
+static uint32_t g_count = 0;
 
 void lin_rx_isr(uint8_t id) {
-
     // If the LIN master is looking for node temp id, send the avg temp over LIN
     if(id == LIN_AVG_TEMP_SENSOR_ID) {
         // calculate the avg;
-
-
+        uint8_t avg = g_count ? (uint8_t)(g_sum / g_count) : 0;
+        lin_write_response_data(LIN_AVG_TEMP_SENSOR_ID, &avg, 1);
     } else if(id == LIN_CURRENT_TEMP_SENSOR_ID) {
         // If the LIN master is looking for node temp id, send the last sample over LIN
-
+        lin_write_response_data(LIN_CURRENT_TEMP_SENSOR_ID, &g_current_val, 1);
     }
 
     // Clear the lin interrupt before exit isr:
-
+    lin_clear_rx_frame_interrupt();
 }
 
 int main(int argc, char **argv) {
@@ -66,13 +67,18 @@ int main(int argc, char **argv) {
 
     // Add the LIN RX ISR
     lin_add_rx_frame_header_interrupt(lin_rx_isr);
+
     while(true) {
-
         // Read the ADC value via I2C here:
-
+        uint8_t temp = 0;
+        if(i2c_read_data(ADC_ADDR, &temp, 1) == 1) {
+            g_current_val = temp;
+            g_sum += temp;
+            g_count++;
+        }
 
         printf("ADC Value: %d\n", g_current_val);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds (SLEEP_DURATION_MS));
+        std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_DURATION_MS));
     }
 }
