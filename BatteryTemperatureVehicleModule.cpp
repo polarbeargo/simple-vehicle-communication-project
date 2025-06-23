@@ -55,7 +55,9 @@ void lin_rx_isr(uint8_t id, uint8_t *data, uint8_t len) {
 
 int main(int argc, char **argv) {
     // Configure the LIN controller and CAN controller here:
-
+    uint32_t lin_config = LIN_BAUD_RATE_9600 | LIN_START_BITS_1 | LIN_STOP_BITS_1 | LIN_DATA_BITS_8 |
+                          LIN_PARITY_NONE | LIN_NO_FLOW_CONTROL | LIN_MODE_LEADER;
+    lin_write_config(0xFF000040, lin_config);
 
     //Add the LIN frame response ISR
     // This ISR fires when a slave node responds to a master node request, In this case the temperature sensor module
