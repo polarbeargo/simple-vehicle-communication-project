@@ -58,7 +58,9 @@ int main(int argc, char **argv) {
     uint32_t lin_config = LIN_BAUD_RATE_9600 | LIN_START_BITS_1 | LIN_STOP_BITS_1 | LIN_DATA_BITS_8 |
                           LIN_PARITY_NONE | LIN_NO_FLOW_CONTROL | LIN_MODE_LEADER;
     lin_write_config(0xFF000040, lin_config);
-
+    
+    uint32_t can_config = CAN_BAUD_RATE_100K | CAN_FORMAT_11BIT;
+    can_write_config(0xFF000020, can_config);
     //Add the LIN frame response ISR
     // This ISR fires when a slave node responds to a master node request, In this case the temperature sensor module
     lin_add_frame_resp_interrupt(lin_rx_isr);
