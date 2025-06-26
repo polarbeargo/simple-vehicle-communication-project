@@ -82,10 +82,17 @@ int main(int argc, char **argv) {
     // Add the CAN RX ISR
     can_add_rx_packet_interrupt(can_new_packet_isr);
 
-    while(true) {
-        // Every 500 ms get the avg temperature from the temperature module
-        // Every 500 ms get the current temperature the temperature module
+    uint32_t last_avg_temp_request_time = 0;
+    uint32_t last_current_temp_request_time = 0;
 
+    while(true) {
+        lin_write_frame_header(LIN_AVG_TEMP_SENSOR_ID);
+        last_avg_temp_request_time = (uint32_t)TIME_NOW_S();
+
+        lin_write_frame_header(LIN_CURRENT_TEMP_SENSOR_ID);
+        last_current_temp_request_time = (uint32_t)TIME_NOW_S();
+
+        SLEEP_MS(500);
     }
     return 0;
 }
