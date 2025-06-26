@@ -63,6 +63,7 @@ void lin_rx_isr(uint8_t id, uint8_t *data, uint8_t len) {
     }
 
     // Clear the lin interrupt before exit isr:
+    lin_clear_frame_resp_interrupt();
 }
 
 
