@@ -58,7 +58,11 @@ void can_packet_isr(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_t le
 
 int main(int argc, char **argv) {
     // Configure the SPI and CAN controllers;
+    uint32_t spi_config = SPI_CLK_1MHZ | SPI_CS_1;
+    spi_write_config(0xFF000010, spi_config);
 
+    uint32_t can_config = CAN_BAUD_RATE_100K | CAN_FORMAT_11BIT;
+    can_write_config(0xFF000020, can_config);
 
     // Add the CAN RX ISR
     can_add_rx_packet_interrupt(can_packet_isr);
