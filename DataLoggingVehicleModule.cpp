@@ -35,22 +35,37 @@
 
 
 
+
+typedef struct {
+    uint8_t avg_temp;
+    uint8_t current_temp;
+    uint32_t timestamp;
+} SPI_FLASH_data_pt_t;
+
+static SPI_FLASH_data_pt_t page_buffer[SPI_FLASH_DATA_PTS_PER_PAGE];
+static int page_buffer_index = 0;
+
+static uint8_t latest_avg_temp = 0;
+static uint8_t latest_current_temp = 0;
+static uint32_t latest_time = 0;
+
 void can_packet_isr(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_t len) {
-    // we can not save the page in the isr, too slow
-    // so you need to accomodate for this in the main loop
-
-    // Do something with the CAN packet
-    if(id == CAN_AVG_TEMPERATURE_11_SENSOR_ID && type == CAN_DATA_FRAME) {
-
-        printf("Average temperature data: %d\n", data[0]);
-
-    } //else if() ...
-    else {
-        printf("Unknown CAN packet received\n");
+    if(type == CAN_DATA_FRAME) {
+        if(id == CAN_AVG_TEMPERATURE_11_SENSOR_ID && len >= 1) {
+            latest_avg_temp = data[0];
+        } else if(id == CAN_CURRENT_TEMP_11_SENSOR_ID && len >= 1) {
+            latest_current_temp = data[0];
+        } else if(id == CAN_TIME_11_SENSOR_ID && len >= 4) {
+            memcpy(&latest_time, data, sizeof(uint32_t));
+            page_buffer[page_buffer_index].avg_temp = latest_avg_temp;
+            page_buffer[page_buffer_index].current_temp = latest_current_temp;
+            page_buffer[page_buffer_index].timestamp = latest_time;
+            page_buffer_index++;
+        }
     }
 
-
     // Clear the can interrupt before exit isr:
+    can_clear_rx_packet_interrupt();
 }
 
 
