@@ -82,13 +82,31 @@ int main(int argc, char **argv) {
     // Add the CAN RX ISR
     can_add_rx_packet_interrupt(can_packet_isr);
 
+    uint32_t page_number = 0;
+
     while(true) {
         // Send the CAN RTR frames to the BatteryTemperatureVehicleModule every 500ms
         // Once a full SPI Flash page size worth of data is received, save it to the SPI Flash
+        can_send_new_packet(CAN_AVG_TEMPERATURE_11_SENSOR_ID, CAN_RTR_FRAME, nullptr, 0);
+        can_send_new_packet(CAN_CURRENT_TEMP_11_SENSOR_ID, CAN_RTR_FRAME, nullptr, 0);
+        can_send_new_packet(CAN_TIME_11_SENSOR_ID, CAN_RTR_FRAME, nullptr, 0);
 
+        if(page_buffer_index >= SPI_FLASH_DATA_PTS_PER_PAGE) {
+            uint8_t erase_cmd[2] = {SPI_FLASH_CMD_ERASE, (uint8_t)page_number};
+            spi_write_data(erase_cmd, sizeof(erase_cmd));
 
+            uint8_t write_buf[SPI_FLASH_PAGE_SIZE + 2];
+            write_buf[0] = SPI_FLASH_CMD_WRITE;
+            write_buf[1] = (uint8_t)page_number;
+            memcpy(&write_buf[2], page_buffer, SPI_FLASH_PAGE_SIZE);
 
+            spi_write_data(write_buf, sizeof(write_buf));
 
+            page_buffer_index = 0;
+            page_number = (page_number + 1) % SPI_FLASH_PAGES_TOTAL;
+        }
+
+        SLEEP_NOW_MS(500);
     }
     return 0;
 }
