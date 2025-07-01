@@ -27,23 +27,23 @@
 void can_new_packet_isr(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_t len) {
     if(type == CAN_RTR_FRAME) {
         switch(id) {
-            case CAN_AVG_TEMPERATURE_11_SENSOR_ID: 
-            uint8_t avg_temp = data[0];
-            can_send_new_packet(CAN_AVG_TEMPERATURE_11_SENSOR_ID, CAN_DATA_FRAME, &avg_temp, 1);
-            break;
-            
-            case CAN_CURRENT_TEMP_11_SENSOR_ID: 
-            uint8_t current_temp = data[0];
-            can_send_new_packet(CAN_CURRENT_TEMP_11_SENSOR_ID, CAN_DATA_FRAME, &current_temp, 1);
-            break;
-            
-            case CAN_TIME_11_SENSOR_ID: 
-            uint32_t now = (uint32_t)TIME_NOW_S();
-            can_send_new_packet(CAN_TIME_11_SENSOR_ID, CAN_DATA_FRAME, (uint8_t*)&now, sizeof(now));
-            break;
-            
+            case CAN_AVG_TEMPERATURE_11_SENSOR_ID: {
+                uint8_t avg_temp = data[0];
+                can_send_new_packet(CAN_AVG_TEMPERATURE_11_SENSOR_ID, CAN_DATA_FRAME, &avg_temp, 1);
+                break;
+            }
+            case CAN_CURRENT_TEMP_11_SENSOR_ID: {
+                uint8_t current_temp = data[0];
+                can_send_new_packet(CAN_CURRENT_TEMP_11_SENSOR_ID, CAN_DATA_FRAME, &current_temp, 1);
+                break;
+            }
+            case CAN_TIME_11_SENSOR_ID: {
+                uint32_t now = (uint32_t)TIME_NOW_S();
+                can_send_new_packet(CAN_TIME_11_SENSOR_ID, CAN_DATA_FRAME, (uint8_t*)&now, sizeof(now));
+                break;
+            }
             default:
-            break;
+                break;
         }
     }
 
