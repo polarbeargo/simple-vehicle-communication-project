@@ -36,12 +36,6 @@
 
 
 
-typedef struct {
-    uint8_t avg_temp;
-    uint8_t current_temp;
-    uint32_t timestamp;
-} SPI_FLASH_data_pt_t;
-
 static SPI_FLASH_data_pt_t page_buffer[SPI_FLASH_DATA_PTS_PER_PAGE];
 static int page_buffer_index = 0;
 
@@ -59,7 +53,8 @@ void can_packet_isr(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_t le
             memcpy(&latest_time, data, sizeof(uint32_t));
             page_buffer[page_buffer_index].avg_temp = latest_avg_temp;
             page_buffer[page_buffer_index].current_temp = latest_current_temp;
-            page_buffer[page_buffer_index].timestamp = latest_time;
+            // Use the correct member name from SPI_FLASH_data_pt_t in SPI.h
+            page_buffer[page_buffer_index].time = latest_time;
             page_buffer_index++;
         }
     }
@@ -92,15 +87,19 @@ int main(int argc, char **argv) {
         can_send_new_packet(CAN_TIME_11_SENSOR_ID, CAN_RTR_FRAME, nullptr, 0);
 
         if(page_buffer_index >= SPI_FLASH_DATA_PTS_PER_PAGE) {
-            uint8_t erase_cmd[2] = {SPI_FLASH_CMD_ERASE, (uint8_t)page_number};
-            spi_write_data(erase_cmd, sizeof(erase_cmd));
+        
+            SPI_xmit_t erase_xmit;
+            erase_xmit.data[0] = SPI_FLASH_CMD_ERASE;
+            erase_xmit.data[1] = (uint8_t)page_number;
+            erase_xmit.len = 2;
+            spi_write_data(&erase_xmit, SPI_CS_1);
 
-            uint8_t write_buf[SPI_FLASH_PAGE_SIZE + 2];
-            write_buf[0] = SPI_FLASH_CMD_WRITE;
-            write_buf[1] = (uint8_t)page_number;
-            memcpy(&write_buf[2], page_buffer, SPI_FLASH_PAGE_SIZE);
-
-            spi_write_data(write_buf, sizeof(write_buf));
+            SPI_xmit_t write_xmit;
+            write_xmit.data[0] = SPI_FLASH_CMD_WRITE;
+            write_xmit.data[1] = (uint8_t)page_number;
+            memcpy(&write_xmit.data[2], page_buffer, SPI_FLASH_PAGE_SIZE);
+            write_xmit.len = SPI_FLASH_PAGE_SIZE + 2;
+            spi_write_data(&write_xmit, SPI_CS_1);
 
             page_buffer_index = 0;
             page_number = (page_number + 1) % SPI_FLASH_PAGES_TOTAL;
