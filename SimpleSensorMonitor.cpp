@@ -69,6 +69,10 @@ int main(int argc, char **argv) {
     lin_add_rx_frame_header_interrupt(lin_rx_isr);
 
     while(true) {
+        // Write the register address to the ADC before reading
+        uint8_t reg = ADC_REG;
+        i2c_write_data(ADC_ADDR, &reg, 1);
+
         // Read the ADC value via I2C here:
         uint8_t temp = 0;
         if(i2c_read_data(ADC_ADDR, &temp, 1) == 1) {
