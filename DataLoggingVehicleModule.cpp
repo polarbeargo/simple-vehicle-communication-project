@@ -44,17 +44,22 @@ static uint8_t latest_current_temp = 0;
 static uint32_t latest_time = 0;
 
 void can_packet_isr(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_t len) {
+    printf("[DEBUG] CAN ISR triggered: id=0x%X, type=%d, len=%d\n", id, type, len);
     if(type == CAN_DATA_FRAME) {
         if(id == CAN_AVG_TEMPERATURE_11_SENSOR_ID && len >= 1) {
             latest_avg_temp = data[0];
+            printf("[LOG] Received AVG TEMP: %u\n", latest_avg_temp);
         } else if(id == CAN_CURRENT_TEMP_11_SENSOR_ID && len >= 1) {
             latest_current_temp = data[0];
+            printf("[LOG] Received CURRENT TEMP: %u\n", latest_current_temp);
         } else if(id == CAN_TIME_11_SENSOR_ID && len >= 4) {
             memcpy(&latest_time, data, sizeof(uint32_t));
+            printf("[LOG] Received TIME: %u\n", latest_time);
             page_buffer[page_buffer_index].avg_temp = latest_avg_temp;
             page_buffer[page_buffer_index].current_temp = latest_current_temp;
-            // Use the correct member name from SPI_FLASH_data_pt_t in SPI.h
             page_buffer[page_buffer_index].time = latest_time;
+            printf("[LOG] Logged Data Point: AVG=%u, CUR=%u, TIME=%u, IDX=%d\n",
+                latest_avg_temp, latest_current_temp, latest_time, page_buffer_index);
             page_buffer_index++;
         }
     }
@@ -80,14 +85,14 @@ int main(int argc, char **argv) {
     uint32_t page_number = 0;
 
     while(true) {
-        // Send the CAN RTR frames to the BatteryTemperatureVehicleModule every 500ms
-        // Once a full SPI Flash page size worth of data is received, save it to the SPI Flash
+        printf("[DEBUG] Sending CAN RTR frames...\n");
         can_send_new_packet(CAN_AVG_TEMPERATURE_11_SENSOR_ID, CAN_RTR_FRAME, nullptr, 0);
         can_send_new_packet(CAN_CURRENT_TEMP_11_SENSOR_ID, CAN_RTR_FRAME, nullptr, 0);
         can_send_new_packet(CAN_TIME_11_SENSOR_ID, CAN_RTR_FRAME, nullptr, 0);
-
+        printf("[DEBUG] Sending CAN RTR frames End...\n");
         if(page_buffer_index >= SPI_FLASH_DATA_PTS_PER_PAGE) {
-        
+            printf("[DEBUG] Writing page to SPI flash, page_number=%u\n", page_number);
+
             SPI_xmit_t erase_xmit;
             erase_xmit.data[0] = SPI_FLASH_CMD_ERASE;
             erase_xmit.data[1] = (uint8_t)page_number;
