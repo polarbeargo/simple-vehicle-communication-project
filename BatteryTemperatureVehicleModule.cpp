@@ -5,25 +5,19 @@
 #include <chrono>
 #include <thread>
 
-// 1. Configure the LIN controller with Baud 9600, 1 Start bit, 1 Stop bit, 8 Data bits, No flow control, Master mode
-// 2. Configure the CAN controller with Baud 100K, 11 bit format
-// 3. Every 500ms get the latest avg temperature from the temperature sensor module on the LIN bus
-// 4. Every 500ms get the latest current temperature from the temperature sensor module on the LIN bus
-// 5. Save the current timestamp for each request on the LIN bus
-// -- 5.5 Use TIME_NOW_S() to get the current time in seconds
-// 6. Respond the CAN RTR frames with DATA frames
+// === Configuration ===
+constexpr uint32_t LIN_HW_ADDR = 0xFF000040;
+constexpr uint32_t CAN_HW_ADDR = 0xFF000020;
+constexpr uint32_t LIN_CONFIG = LIN_BAUD_RATE_9600 | LIN_START_BITS_1 | LIN_STOP_BITS_1 | LIN_DATA_BITS_8 |
+                                LIN_PARITY_NONE | LIN_NO_FLOW_CONTROL | LIN_MODE_LEADER;
+constexpr uint32_t CAN_CONFIG = CAN_BAUD_RATE_100K | CAN_FORMAT_11BIT;
+constexpr int POLL_INTERVAL_MS = 500;
 
-
+// === Utility Macros ===
 #define SLEEP_MS(ms) std::this_thread::sleep_for(std::chrono::milliseconds(ms))
 #define TIME_NOW_S() std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count()
 
-// REMEMBER:
-// 1. CAN RTR frames are request for data from another CAN device
-// 2. CAN DATA frames are responses to a CAN RTR frames
-// 3. The CAN IDs we are supporting are:
-//    3.1 CAN_AVG_TEMPERATURE_11_SENSOR_ID
-//    3.2 CAN_CURRENT_TEMP_11_SENSOR_ID
-//    3.3 CAN_TIME_11_SENSOR_ID
+// === CAN ISR ===
 void can_new_packet_isr(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_t len) {
     if(type == CAN_RTR_FRAME) {
         switch(id) {
@@ -46,45 +40,34 @@ void can_new_packet_isr(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_
                 break;
         }
     }
-
-    // Clear the can interrupt before exit isr:
     can_clear_rx_packet_interrupt();
 }
 
+// === LIN ISR ===
 void lin_rx_isr(uint8_t id, uint8_t *data, uint8_t len) {
     if(id == LIN_AVG_TEMP_SENSOR_ID) {
-
-
         printf("Average Temperature data: %d\n", data[0]);
     } else if(id == LIN_CURRENT_TEMP_SENSOR_ID) {
-
-
         printf("Current Temperature data: %d\n", data[0]);
     }
-
-    // Clear the lin interrupt before exit isr:
     lin_clear_frame_resp_interrupt();
 }
 
-
-int main(int argc, char **argv) {
-    // Configure the LIN controller and CAN controller here:
-    uint32_t lin_config = LIN_BAUD_RATE_9600 | LIN_START_BITS_1 | LIN_STOP_BITS_1 | LIN_DATA_BITS_8 |
-                          LIN_PARITY_NONE | LIN_NO_FLOW_CONTROL | LIN_MODE_LEADER;
-    lin_write_config(0xFF000040, lin_config);
-    
-    uint32_t can_config = CAN_BAUD_RATE_100K | CAN_FORMAT_11BIT;
-    can_write_config(0xFF000020, can_config);
-    //Add the LIN frame response ISR
-    // This ISR fires when a slave node responds to a master node request, In this case the temperature sensor module
+// === Initialization ===
+void init_lin() {
+    lin_write_config(LIN_HW_ADDR, LIN_CONFIG);
     lin_add_frame_resp_interrupt(lin_rx_isr);
+}
 
-    // Add the CAN RX ISR
+void init_can() {
+    can_write_config(CAN_HW_ADDR, CAN_CONFIG);
     can_add_rx_packet_interrupt(can_new_packet_isr);
+}
 
+// === Main Logic ===
+void poll_and_request() {
     uint32_t last_avg_temp_request_time = 0;
     uint32_t last_current_temp_request_time = 0;
-
     while(true) {
         lin_write_frame_header(LIN_AVG_TEMP_SENSOR_ID);
         last_avg_temp_request_time = (uint32_t)TIME_NOW_S();
@@ -92,7 +75,13 @@ int main(int argc, char **argv) {
         lin_write_frame_header(LIN_CURRENT_TEMP_SENSOR_ID);
         last_current_temp_request_time = (uint32_t)TIME_NOW_S();
 
-        SLEEP_MS(500);
+        SLEEP_MS(POLL_INTERVAL_MS);
     }
+}
+
+int main(int argc, char **argv) {
+    init_lin();
+    init_can();
+    poll_and_request();
     return 0;
 }
