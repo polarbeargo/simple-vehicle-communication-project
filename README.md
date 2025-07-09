@@ -32,8 +32,35 @@ Explain the steps needed to run any automated tests
 
 ## Project Instructions
 
-This section should contain all the student deliverables for this project.
-
+- `hal/` for hardware abstraction implementations
+- `include/` for interfaces and config
+- `src/` for application logic
+```
+project-root/
+│
+├── include/
+│   ├── CAN_HAL.h
+│   ├── I2C_HAL.h
+│   ├── LIN_HAL.h
+│   ├── SPI_HAL.h
+│   └── config.h
+│
+├── hal/
+│   ├── CAN_HAL.cpp
+│   ├── I2C_HAL.cpp
+│   ├── SPI_HAL.cpp
+│   └── LIN_HAL.cpp
+│
+├── src/
+│   ├── BatteryTemperatureVehicleModule.cpp
+│   ├── DataLoggingVehicleModule.cpp
+│   └── SimpleSensorMonitor.cpp
+│
+├── hardware_simulation/
+│   └── ... (existing simulation code)
+│
+└── CMakeLists.txt
+```
 ## Built With
 
 * [Item1](www.item1.com) - Description of item
