@@ -8,6 +8,7 @@
 // SPI Flash definitions
 #define SPI_FLASH_DATA_PTS_PER_PAGE  (SPI_FLASH_PAGE_SIZE / sizeof(SPI_FLASH_data_pt_t))
 #define SPI_FLASH_PAGES_TOTAL        (SPI_FLASH_SZ / SPI_FLASH_PAGE_SIZE)
+#define SENSOR_MASK 0x7FF
 
 static SPI_FLASH_data_pt_t page_buffer[SPI_FLASH_DATA_PTS_PER_PAGE];
 static int page_buffer_index = 0;
@@ -49,6 +50,9 @@ int main(int argc, char **argv) {
     SimCANBus canBus;
     canBus.init(0xFF000020, CAN_BAUD_RATE_100K | CAN_FORMAT_11BIT);
     canBus.setRxISR(can_packet_isr);
+    canBus.addFilter(0, SENSOR_MASK, CAN_AVG_TEMPERATURE_11_SENSOR_ID);
+    canBus.addFilter(1, SENSOR_MASK, CAN_CURRENT_TEMP_11_SENSOR_ID);
+    canBus.addFilter(2, SENSOR_MASK, CAN_TIME_11_SENSOR_ID);
 
     uint32_t page_number = 0;
 

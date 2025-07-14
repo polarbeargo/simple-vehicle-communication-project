@@ -16,3 +16,7 @@ void SimCANBus::send(uint32_t id, CAN_FRAME_TYPES type, uint8_t* data, uint8_t l
 void SimCANBus::clearRxInterrupt() {
     can_clear_rx_packet_interrupt();
 }
+
+int SimCANBus::addFilter(uint8_t idx, uint16_t mask, uint16_t filter) {
+    return can_add_filter(idx, mask, filter);
+}
