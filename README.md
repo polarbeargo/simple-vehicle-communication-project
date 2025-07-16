@@ -4,15 +4,19 @@ Create 3 different vehicle modules to represent communication in vehicle
 1. SimpleTemperatureMonitor
     - Read the Temperature value over i2c.
     - Responds to LIN frames with the Avg temperature or current temperature.
+       
+       ![SimpleTemperatureMonitor Diagram](images/simpletemperaturemonitor.drawio.png)
 2. BatteryTemperatureVehicleModule
     - Sends Temperature requests to the SimpleTemperatureMonitor over LIN.
     - Responds to CAN RTR frames the for the current temp, avg temp, and current time in seconds.
+
+       ![BatteryTemperatureVehicleModule Diagram](images/batterytemperaturevehicle.drawio.png)
 3. DataLoggingVehicleModule
     - Sends CAN RTR frames to the BatteryTemperatureVehicleModule.
     - Reads the CAN Data frames with the current temp, avg temp, and time stamp.
     - Saves the data to the SPI Flash on chip select 1.
 
-
+      ![DataLoggingVehicleModule Diagram](images/dataloggingvehiclemodule.drawio.png)
 ## Getting Started
 
 To build this within the workspace
@@ -30,7 +34,7 @@ CMake
 
 Explain the steps needed to run any automated tests
 
-## Software Design Patterns
+## Software Design Pattern
 
 In this project, we utilize the `Hardware Abstraction Layer (HAL)` design pattern to separate hardware-specific implementations (registers, drivers, protocols) from the application logic which enables to run on a different device or adding new hardware or features, we only need to update the HAL implementation not the core logic. This allows for easier reading, testing, maintain and simulation of the vehicle modules without needing actual hardware with the following steps:
 
