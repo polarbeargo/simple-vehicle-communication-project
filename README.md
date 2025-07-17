@@ -32,7 +32,10 @@ CMake
 
 ## Testing
 
-Explain the steps needed to run any automated tests
+To run the tests, you can use the following command:
+```
+./test_HAL_gtest 
+```
 
 ## Software Design Pattern
 
@@ -48,6 +51,9 @@ In this project, we utilize the `Hardware Abstraction Layer (HAL)` design patter
 - `hal/` for hardware abstraction implementations
 - `include/` for interfaces and config
 - `src/` for application logic
+- `hardware_simulation/` for simulation code
+- `test/` for unit tests using Google Test framework
+
 ```
 project-root/
 │
@@ -71,6 +77,9 @@ project-root/
 │
 ├── hardware_simulation/
 │   └── ... (existing simulation code)
+│
+├── test/
+│   └── test_HAL_gtest.cpp
 │
 └── CMakeLists.txt
 ```
