@@ -84,7 +84,7 @@ TEST(HALTest, LIN_HAL_InitSendResponse) {
 
 TEST(HALTest, CAN_HAL_InitSend) {
     can_init_called = false;
-    SimCANBus canBus;
+    auto& canBus = SimCANBus::instance();
     canBus.init(0x123, 0x456);
     EXPECT_TRUE(can_init_called);
     EXPECT_EQ(last_can_init_addr, 0x123);

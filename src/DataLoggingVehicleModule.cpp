@@ -38,7 +38,7 @@ void can_packet_isr(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_t le
             page_buffer_index++;
         }
     }
-    SimCANBus().clearRxInterrupt();
+    SimCANBus::instance().clearRxInterrupt();
 }
 
 #define SLEEP_NOW_MS(ms)   std::this_thread::sleep_for(std::chrono::milliseconds(ms))
@@ -47,8 +47,8 @@ int main(int argc, char **argv) {
     // Initialize SPI and CAN using HAL
     SPI_HAL::init(0xFF000010, SPI_CLK_1MHZ | SPI_CS_1);
 
-    SimCANBus canBus;
-    canBus.init(0xFF000020, CAN_BAUD_RATE_100K | CAN_FORMAT_11BIT);
+    auto& canBus = SimCANBus::instance();
+    canBus.init(CAN_HARDWARE_REGISTER, CAN_BAUD_RATE_100K | CAN_FORMAT_11BIT);
     canBus.setRxISR(can_packet_isr);
     canBus.addFilter(0, SENSOR_MASK, CAN_AVG_TEMPERATURE_11_SENSOR_ID);
     canBus.addFilter(1, SENSOR_MASK, CAN_CURRENT_TEMP_11_SENSOR_ID);

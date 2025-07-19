@@ -12,9 +12,8 @@
 static uint8_t latest_avg_temp = 0;
 static uint8_t latest_current_temp = 0;
 
-SimCANBus canBus;
-
 void can_new_packet_isr(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_t len) {
+    auto& canBus = SimCANBus::instance();
     printf("[DEBUG] CAN ISR triggered: id=0x%X, type=%d, len=%d\n", id, type, len);
     if(type == CAN_RTR_FRAME) {
         switch(id) {
@@ -59,7 +58,8 @@ int main(int argc, char **argv) {
     LIN_HAL::init(LIN_HW_ADDR, LIN_MASTER_CONFIG);
     LIN_HAL::setFrameRespISR(lin_rx_isr);
 
-    canBus.init(CAN_HW_ADDR, CAN_CONFIG);
+    auto& canBus = SimCANBus::instance();
+    canBus.init(CAN_HARDWARE_REGISTER, CAN_CONFIG);
     canBus.setRxISR(can_new_packet_isr);
 
     poll_and_request();
