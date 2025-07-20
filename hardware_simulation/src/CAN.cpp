@@ -49,7 +49,7 @@ int can_add_filter(uint8_t idx, uint16_t mask, uint16_t filter) {
 void can_write_config(uint32_t reg, uint32_t value) {
     // Write the configuration value to the CAN bus
     if(reg == CAN_HARDWARE_REGISTER) {
-        g_can.reg = value;
+        g_can.reg = reg;
     } else {
         g_can.reg = 0;
     }
@@ -88,6 +88,8 @@ static void can_isr_thread() {
         exit(EXIT_FAILURE);
     }
 
+    printf("CAN ISR thread started on port %d\n", g_can.port);
+
     while (true) {
         int len = sizeof(cliaddr);
         CAN_FRAME_t frame;
@@ -101,10 +103,12 @@ static void can_isr_thread() {
             continue;
         }
 
+        printf("CAN: g_can.reg=0x%X, frame.reg=0x%X\n", g_can.reg, frame.reg);
+
         if(g_can.isr_cb != nullptr && frame.reg == g_can.reg) {
             g_can.isr = 1;
             while(g_can.isr) {
-                for (int idx = 0; i < g_can.filter_count; i++) {
+                for (int idx = 0; idx < g_can.filter_count; idx++) {
                     if ((frame.id & g_can.masks[idx]) == g_can.filters[idx]) {
                         g_can.isr_cb(frame.id, frame.type, frame.data, frame.len);
                     }
@@ -152,6 +156,8 @@ int can_send_new_packet(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_
             exit(EXIT_FAILURE);
         }
     }
+
+    printf("CAN SEND: id=0x%X reg=0x%X type=%d len=%d\n", id, g_can.reg, type, len);
 
     return 0;
 }
