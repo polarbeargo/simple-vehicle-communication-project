@@ -3,7 +3,9 @@
 
 #include <cstdint>
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 // | CAN FORMAT: 2 | CAN SPEED: 4 |
 
@@ -35,6 +37,10 @@ int can_send_new_packet(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_
 
 void can_add_rx_packet_interrupt(void (*callback)(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_t len));
 void can_clear_rx_packet_interrupt();
+void can_set_port(uint16_t port);
 
-};
+#ifdef __cplusplus
+}
+#endif
+
 #endif //PROJECT_CAN_H

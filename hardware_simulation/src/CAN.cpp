@@ -164,7 +164,9 @@ int can_send_new_packet(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_
 
 void can_add_rx_packet_interrupt(void (*callback)(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_t len)) {
     g_can.isr_cb = callback;
-    g_can.port = CAN_PORT_START;
-
     std::thread(can_isr_thread).detach();
+}
+
+void can_set_port(uint16_t port) {
+    g_can.port = port;
 }
