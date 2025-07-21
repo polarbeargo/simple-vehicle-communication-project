@@ -24,3 +24,5 @@ constexpr uint32_t CAN_CONFIG = CAN_BAUD_RATE_100K | CAN_FORMAT_11BIT;
 // General
 constexpr int SLEEP_DURATION_MS  = 1000;
 constexpr int POLL_INTERVAL_MS = 500;
+
+#define CAN_PORT_START 9000

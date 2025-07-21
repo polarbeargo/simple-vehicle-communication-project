@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <chrono>
 #include <thread>
+#include <cstdlib>
+#include "CAN.h"
 
 #define SLEEP_MS(ms) std::this_thread::sleep_for(std::chrono::milliseconds(ms))
 #define TIME_NOW_S() std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count()
@@ -55,6 +57,10 @@ void poll_and_request() {
 }
 
 int main(int argc, char **argv) {
+    int port_offset = 0;
+    if (argc > 1) port_offset = atoi(argv[1]);
+    can_set_port(CAN_PORT_START + port_offset);
+
     LIN_HAL::init(LIN_HW_ADDR, LIN_MASTER_CONFIG);
     LIN_HAL::setFrameRespISR(lin_rx_isr);
 

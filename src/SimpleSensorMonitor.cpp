@@ -5,6 +5,8 @@
 #include "config.h"
 #include "I2C_HAL.h"
 #include "LIN_HAL.h"
+#include <cstdlib>
+#include "CAN.h"
 
 static uint8_t g_current_val = 0;
 static uint32_t g_sum = 0;
@@ -21,6 +23,10 @@ void lin_rx_isr(uint8_t id) {
 }
 
 int main(int argc, char **argv) {
+    int port_offset = 0;
+    if (argc > 1) port_offset = atoi(argv[1]);
+    can_set_port(CAN_PORT_START + port_offset);
+
     I2C_HAL::init(I2C_HW_ADDR, I2C_CONFIG);
     LIN_HAL::init(LIN_HW_ADDR, LIN_CONFIG);
 

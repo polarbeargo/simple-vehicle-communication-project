@@ -4,6 +4,8 @@
 #include <cstring>
 #include <thread>
 #include <cstdio>
+#include <config.h>
+#include <cstdlib>
 
 // SPI Flash definitions
 #define SPI_FLASH_DATA_PTS_PER_PAGE  (SPI_FLASH_PAGE_SIZE / sizeof(SPI_FLASH_data_pt_t))
@@ -44,11 +46,15 @@ void can_packet_isr(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_t le
 #define SLEEP_NOW_MS(ms)   std::this_thread::sleep_for(std::chrono::milliseconds(ms))
 
 int main(int argc, char **argv) {
+    int port_offset = 0;
+    if (argc > 1) port_offset = atoi(argv[1]);
+    can_set_port(CAN_PORT_START + port_offset);
+
     // Initialize SPI and CAN using HAL
-    SPI_HAL::init(0xFF000010, SPI_CLK_1MHZ | SPI_CS_1);
+    SPI_HAL::init(SPI_HARDWARE_REGISTER, SPI_CLK_1MHZ | SPI_CS_1);
 
     auto& canBus = SimCANBus::instance();
-    canBus.init(CAN_HARDWARE_REGISTER, CAN_BAUD_RATE_100K | CAN_FORMAT_11BIT);
+    canBus.init(CAN_HARDWARE_REGISTER, CAN_CONFIG);
     canBus.setRxISR(can_packet_isr);
     canBus.addFilter(0, SENSOR_MASK, CAN_AVG_TEMPERATURE_11_SENSOR_ID);
     canBus.addFilter(1, SENSOR_MASK, CAN_CURRENT_TEMP_11_SENSOR_ID);
