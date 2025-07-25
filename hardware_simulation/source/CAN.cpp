@@ -108,7 +108,7 @@ static void can_isr_thread() {
         if(g_can.isr_cb != nullptr && frame.reg == g_can.reg) {
             g_can.isr = 1;
             while(g_can.isr) {
-                for (int idx = 0; idx < g_can.filter_count; idx++) {
+                for (int idx = 0; idx <= g_can.filter_count; idx++) {
                     if ((frame.id & g_can.masks[idx]) == g_can.filters[idx]) {
                         g_can.isr_cb(frame.id, frame.type, frame.data, frame.len);
                     }
