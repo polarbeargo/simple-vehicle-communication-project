@@ -25,6 +25,12 @@ mkdir build && cd build
 cmake ..
 make
 ```
+Run the executable with:
+```
+./SimpleSensorMonitor 0
+./BatteryTemperatureVehicleModule 1
+./DataLoggingVehicleModule 2
+```
 
 ### Dependencies
 
@@ -45,6 +51,8 @@ In this project, we utilize the `Hardware Abstraction Layer (HAL)` design patter
 - Implement these interfaces for each supported platform/devices.
 
 - Use the interfaces in the application logic, not direct hardware calls.  
+
+By using the `singleton pattern` for the CANBus interface to ensures only one CAN bus instance exists in the process, all parts of our code interact with the same CAN bus object, such that filters, callbacks, and configuration are always in sync. Preventing conflicts or duplicated state or multiple objects from trying to bind to the same hardware or network port. Promote thread safety by centralizing access, making it easier to manage concurrency and synchronization.
 
 ## Project Structure
 
@@ -83,6 +91,8 @@ project-root/
 │
 └── CMakeLists.txt
 ```
+## Demonstration  
+![Demo](images/demo.gif)  
 
 ## License
 [License](../LICENSE.md)
