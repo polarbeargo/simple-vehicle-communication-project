@@ -26,3 +26,4 @@ constexpr int SLEEP_DURATION_MS  = 1000;
 constexpr int POLL_INTERVAL_MS = 500;
 
 #define CAN_PORT_START 9000
+#define SENSOR_MASK 0x7FF

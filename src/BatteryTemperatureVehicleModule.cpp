@@ -26,8 +26,10 @@ void can_new_packet_isr(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_
                 canBus.send(CAN_CURRENT_TEMP_11_SENSOR_ID, CAN_DATA_FRAME, &latest_current_temp, 1);
                 break;
             case CAN_TIME_11_SENSOR_ID: {
+                printf("[DEBUG] CAN_TIME_11_SENSOR_ID RTR received, sending current time\n");
                 uint32_t now = (uint32_t)TIME_NOW_S();
                 canBus.send(CAN_TIME_11_SENSOR_ID, CAN_DATA_FRAME, (uint8_t*)&now, sizeof(now));
+                printf("[DEBUG] Sent CAN_TIME_11_SENSOR_ID DATA FRAME with time=%u\n", now);
                 break;
             }
             default:
@@ -39,8 +41,10 @@ void can_new_packet_isr(uint32_t id, CAN_FRAME_TYPES type, uint8_t *data, uint8_
 
 void lin_rx_isr(uint8_t id, uint8_t *data, uint8_t len) {
     if(id == LIN_AVG_TEMP_SENSOR_ID && len >= 1) {
+        latest_avg_temp = data[0];
         printf("Average Temperature data: %d\n", data[0]);
     } else if(id == LIN_CURRENT_TEMP_SENSOR_ID && len >= 1) {
+        latest_current_temp = data[0];
         printf("Current Temperature data: %d\n", data[0]);
     }
     LIN_HAL::clearFrameRespInterrupt();
@@ -67,6 +71,9 @@ int main(int argc, char **argv) {
     auto& canBus = SimCANBus::instance();
     canBus.init(CAN_HARDWARE_REGISTER, CAN_CONFIG);
     canBus.setRxISR(can_new_packet_isr);
+    canBus.addFilter(0, SENSOR_MASK, CAN_AVG_TEMPERATURE_11_SENSOR_ID);
+    canBus.addFilter(1, SENSOR_MASK, CAN_CURRENT_TEMP_11_SENSOR_ID);
+    canBus.addFilter(2, SENSOR_MASK, CAN_TIME_11_SENSOR_ID);
 
     poll_and_request();
     return 0;

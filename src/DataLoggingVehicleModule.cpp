@@ -10,7 +10,6 @@
 // SPI Flash definitions
 #define SPI_FLASH_DATA_PTS_PER_PAGE  (SPI_FLASH_PAGE_SIZE / sizeof(SPI_FLASH_data_pt_t))
 #define SPI_FLASH_PAGES_TOTAL        (SPI_FLASH_SZ / SPI_FLASH_PAGE_SIZE)
-#define SENSOR_MASK 0x7FF
 
 static SPI_FLASH_data_pt_t page_buffer[SPI_FLASH_DATA_PTS_PER_PAGE];
 static int page_buffer_index = 0;
